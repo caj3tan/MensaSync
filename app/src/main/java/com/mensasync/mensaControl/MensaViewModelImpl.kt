@@ -1,18 +1,18 @@
-package com.mensasync.viewmodel
+package com.mensasync.mensaControl
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
-import com.mensasync.model.Table
-import com.mensasync.model.TableModel
-import com.mensasync.storage.LocalStorage
-import com.mensasync.sync.SyncService
+import com.mensasync.mensaData.Table
+import com.mensasync.mensaData.TableModel
+import com.mensasync.localStorage.LocalStorage
+import com.mensasync.mensaNetwork.SyncService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class MensaViewModelImpl(
     private val tableModel: TableModel,
     private val storage: LocalStorage,
-    private val syncService: SyncService
+    private var syncService: SyncService
 ) : ViewModel(), MensaViewModel {
 
     private val _tables = MutableStateFlow(tableModel.getCurrentState())
@@ -23,6 +23,13 @@ class MensaViewModelImpl(
 
     private val _searchQuery = mutableStateOf("")
     override val searchQuery: State<String> = _searchQuery
+
+    init {
+        storage.load()?.let { savedTables ->
+            tableModel.setState(savedTables)
+            updateAndPersist()
+        }
+    }
 
     override fun updateUserName(name: String) {
         _username.value = name
@@ -58,6 +65,10 @@ class MensaViewModelImpl(
         syncService.startDiscovery()
     }
 
+    override fun setSyncService(syncService: SyncService) {
+        this.syncService = syncService
+    }
+
     private fun updateAndPersist() {
         val updated = tableModel.getCurrentState()
         _tables.value = updated
@@ -68,4 +79,9 @@ class MensaViewModelImpl(
         val json = exportAsJson()
         syncService.sendData(json)
     }
+
+    override fun stopSync() {
+        syncService.stop()
+    }
+
 }

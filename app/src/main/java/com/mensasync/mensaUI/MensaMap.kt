@@ -1,4 +1,4 @@
-package com.mensasync.ui
+package com.mensasync.mensaUI
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -10,12 +10,13 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.*
-import com.mensasync.model.Table
-import com.mensasync.model.TableType
+import com.mensasync.mensaData.Table
+import com.mensasync.mensaData.TableType
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.geometry.Offset
-import com.mensasync.viewmodel.MensaViewModel
+import androidx.compose.ui.platform.testTag
+import com.mensasync.mensaControl.MensaViewModel
 
 @Composable
 fun MensaMap(
@@ -36,6 +37,7 @@ fun MensaMap(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .testTag("mapArea")
             .then(gestureModifier)
             .graphicsLayer(
                 scaleX = scale,
@@ -52,19 +54,21 @@ fun MensaMap(
                     TableType.KURZ -> DpSize(48.dp, 64.dp)
                 }
 
-                // 🎨 Farblogik
                 val farbe = when {
                     table.occupiedBy.isEmpty() -> Color.Green
                     viewModel.username.value in table.occupiedBy -> Color.Yellow
                     viewModel.searchQuery.value in table.occupiedBy -> Color.Cyan
                     else -> Color.Red
                 }
+                val isHighlighted = viewModel.searchQuery.value in table.occupiedBy
+                val tag = if (isHighlighted) "table_${table.id}_highlighted" else "table_${table.id}"
 
                 Box(
                     modifier = Modifier
                         .offset(x = table.x.dp, y = table.y.dp)
                         .size(size.width, size.height)
                         .background(farbe, RoundedCornerShape(8.dp))
+                        .testTag(tag)
                         .clickable { onTableClick(table) },
                     contentAlignment = Alignment.Center
                 ) {

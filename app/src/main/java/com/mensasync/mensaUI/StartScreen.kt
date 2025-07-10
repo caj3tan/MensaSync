@@ -1,13 +1,14 @@
-package com.mensasync.ui
+package com.mensasync.mensaUI
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.mensasync.viewmodel.MensaViewModel
+import com.mensasync.mensaControl.MensaViewModel
 
 @Composable
 fun StartScreen(navController: NavHostController, viewModel: MensaViewModel) {
@@ -27,6 +28,7 @@ fun StartScreen(navController: NavHostController, viewModel: MensaViewModel) {
             label = { Text("Dein Name") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
+                .testTag("startNameInput")
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -34,11 +36,13 @@ fun StartScreen(navController: NavHostController, viewModel: MensaViewModel) {
         Button(
             onClick = {
                 viewModel.updateUserName(name)
-                // TODO: Bluetooth starten
+                viewModel.startSync()
                 navController.navigate(Screen.Mensa.route)
             },
             enabled = name.isNotBlank(),
-            modifier = Modifier.align(Alignment.End)
+            modifier = Modifier
+                .align(Alignment.End)
+                .testTag("connectButton")
         ) {
             Text("Verbinden")
         }

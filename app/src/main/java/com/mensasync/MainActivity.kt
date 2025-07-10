@@ -1,5 +1,6 @@
 package com.mensasync
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -8,18 +9,18 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.mensasync.ui.Screen
+import com.mensasync.mensaUI.Screen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.mensasync.model.TableModelImpl
-import com.mensasync.storage.LocalStorageImpl
-import com.mensasync.sync.BluetoothSyncService
-import com.mensasync.sync.SyncServiceImpl
-import com.mensasync.viewmodel.MensaViewModel
-import com.mensasync.viewmodel.MensaViewModelImpl
-import com.mensasync.ui.MensaScreen
-import com.mensasync.ui.StartScreen
+import com.mensasync.mensaData.TableModelImpl
+import com.mensasync.localStorage.LocalStorageImpl
+import com.mensasync.mensaNetwork.BluetoothSyncService
+import com.mensasync.mensaNetwork.SyncService
+import com.mensasync.mensaControl.MensaViewModel
+import com.mensasync.mensaControl.MensaViewModelImpl
+import com.mensasync.mensaUI.MensaScreen
+import com.mensasync.mensaUI.StartScreen
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.S)
@@ -45,7 +46,6 @@ class MainActivity : ComponentActivity() {
                 ActivityCompat.requestPermissions(this, notGranted.toTypedArray(), 1)
             }
         } else {
-            // Für ältere Android-Versionen (z. B. API 30): ACCESS_FINE_LOCATION erlaubt Bluetooth-Scanning
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
             ) {
@@ -63,21 +63,28 @@ class MainActivity : ComponentActivity() {
 
         requestBluetoothPermissions()
 
+        val dummySync = object : SyncService {
+            override fun startDiscovery() {}
+            override fun sendData(json: String) {}
+            override fun receiveData(json: String) {}
+            override fun mergeRemoteData(json: String) {}
+            override fun stop() {}
+        }
+
         val tableModel = TableModelImpl()
         val storage = LocalStorageImpl(this)
-        val sync = SyncServiceImpl { json ->
-            println("Empfangenes JSON: $json")
-        }
-        val viewModel: MensaViewModel = MensaViewModelImpl(tableModel, storage, sync)
-        val syncService = BluetoothSyncService(this) { json ->
+        val viewModel: MensaViewModel = MensaViewModelImpl(tableModel, storage, dummySync)
+        val bluetoothAdapter = (getSystemService(Context.BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager).adapter
+        val realSyncService = BluetoothSyncService(this, { json ->
             viewModel.importFromJson(json)
-        }
+        }, bluetoothAdapter)
 
-
-
-        viewModel.selectTable(0, "Anna")
-        viewModel.selectTable(0, "Karl")
-        viewModel.selectTable(5, "Max")
+        viewModel.setSyncService(realSyncService)
+        viewModel.selectTable(1, "Max")
+        viewModel.selectTable(2, "Anna")
+        viewModel.selectTable(8, "Lisa")
+        viewModel.selectTable(12, "Claire")
+        viewModel.selectTable(20, "Bob")
 
         setContent {
             val navController = rememberNavController()

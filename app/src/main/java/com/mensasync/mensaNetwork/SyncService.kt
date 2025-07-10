@@ -1,4 +1,4 @@
-package com.mensasync.sync
+package com.mensasync.mensaNetwork
 
 interface SyncService {
     fun startDiscovery()

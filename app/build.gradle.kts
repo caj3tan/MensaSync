@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
     alias(libs.plugins.compose.compiler)
 }
 
@@ -39,9 +39,6 @@ android {
         viewBinding = true
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.0"
-    }
 }
 
 dependencies {
@@ -66,4 +63,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(kotlin("test"))
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.robolectric)
+
 }

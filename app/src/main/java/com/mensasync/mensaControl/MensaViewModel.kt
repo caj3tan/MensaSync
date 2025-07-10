@@ -1,7 +1,8 @@
-package com.mensasync.viewmodel
+package com.mensasync.mensaControl
 
 import androidx.compose.runtime.State
-import com.mensasync.model.Table
+import com.mensasync.mensaData.Table
+import com.mensasync.mensaNetwork.SyncService
 import kotlinx.coroutines.flow.StateFlow
 
 interface MensaViewModel {
@@ -19,5 +20,7 @@ interface MensaViewModel {
     fun importFromJson(json: String)
 
     fun startSync()
+    fun stopSync()
     fun sendCurrentState()
+    fun setSyncService(syncService: SyncService)
 }

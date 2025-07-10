@@ -1,8 +1,8 @@
-package com.mensasync.sync
+package com.mensasync.mensaNetwork
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.Context
@@ -10,16 +10,16 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import kotlinx.coroutines.*
 import java.io.IOException
-import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
 
 class BluetoothSyncService(
     private val context: Context,
-    private val onJsonReceived: (String) -> Unit
+    private val onJsonReceived: (String) -> Unit,
+    private val bluetoothAdapter: BluetoothAdapter? =
+        (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
 ) : SyncService {
 
-    private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private val serviceUUID: UUID = UUID.fromString("12345678-1234-1234-1234-123456789abc")
 
     private var serverSocket: BluetoothServerSocket? = null
@@ -84,19 +84,27 @@ class BluetoothSyncService(
     }
 
     override fun mergeRemoteData(json: String) {
-        // Optional: falls man Unterschied macht
         receiveData(json)
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun stop() {
-        scope.cancel()
+        Log.d("BluetoothSync", "Stopping Bluetooth connections...")
+
+        try {
+            socket?.close()
+            socket = null
+        } catch (e: IOException) {
+            Log.e("BluetoothSync", "Error closing client socket", e)
+        }
+
         try {
             serverSocket?.close()
-            socket?.close()
-            Log.d("BluetoothSync", "Bluetooth connections closed.")
+            serverSocket = null
         } catch (e: IOException) {
-            Log.e("BluetoothSync", "Error closing Bluetooth", e)
+            Log.e("BluetoothSync", "Error closing server socket", e)
         }
+
+        scope.cancel(CancellationException("Sync stopped"))
     }
 }

@@ -1,6 +1,6 @@
-package com.mensasync.storage
+package com.mensasync.localStorage
 
-import com.mensasync.model.Table
+import com.mensasync.mensaData.Table
 
 interface LocalStorage {
     fun save(data: List<Table>)

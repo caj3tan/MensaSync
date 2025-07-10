@@ -1,28 +1,26 @@
-package com.mensasync.viewmodel
+package com.mensasync.mensaControl
 
-import androidx.compose.runtime.mutableStateOf
-import com.mensasync.model.Table
-import com.mensasync.model.TableModel
-import com.mensasync.storage.LocalStorage
-import com.mensasync.sync.SyncService
+import com.mensasync.fakes.FakeSyncService
+import com.mensasync.fakes.FakeTableModel
+import com.mensasync.fakes.FakeStorage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
-class MensaViewModelImplTest {
+class MensaViewModelTest {
 
     private lateinit var viewModel: MensaViewModelImpl
     private lateinit var fakeModel: FakeTableModel
     private lateinit var fakeStorage: FakeStorage
-    private lateinit var fakeSync: FakeSync
+    private lateinit var fakeSync: FakeSyncService
 
     @Before
     fun setup() {
         fakeModel = FakeTableModel()
         fakeStorage = FakeStorage()
-        fakeSync = FakeSync()
+        fakeSync = FakeSyncService()
         viewModel = MensaViewModelImpl(fakeModel, fakeStorage, fakeSync)
     }
 
@@ -61,44 +59,40 @@ class MensaViewModelImplTest {
         viewModel.importFromJson(json)
         assertEquals("testuser", viewModel.tables.first().first().occupiedBy?.first())
     }
-}
 
-class FakeTableModel : TableModel {
-    private val tables = MutableList(5) { Table(id = 0, type = com.mensasync.model.TableType.QUADRAT, x = 10, y = 10) }
-
-    override fun getCurrentState(): List<Table> = tables.map { it.copy() }
-
-    override fun selectTable(id: Int, name: String) {
-        val table = tables.first { it.id == id }
-        if (table.occupiedBy == null) table.occupiedBy = mutableListOf()
-        table.occupiedBy!!.add(name)
+    @Test
+    fun `startSync calls startDiscovery on SyncService`() {
+        val sync = FakeSyncService()
+        val vm = MensaViewModelImpl(fakeModel, fakeStorage, sync)
+        vm.startSync()
+        assertTrue(sync.started)
     }
 
-    override fun releaseTable(id: Int, name: String) {
-        tables.first { it.id == id }.occupiedBy?.remove(name)
-    }
-}
-
-class FakeStorage : LocalStorage {
-    var lastSaved: List<Table>? = null
-
-    override fun save(data: List<Table>) {
-        lastSaved = data.map { it.copy() }
+    @Test
+    fun `stopSync calls stop on SyncService`() {
+        val sync = FakeSyncService()
+        val vm = MensaViewModelImpl(fakeModel, fakeStorage, sync)
+        vm.stopSync()
+        assertTrue(sync.stopped)
     }
 
-    override fun load(): List<Table>? = null
+    @Test
+    fun `sendCurrentState calls sendData on SyncService`() = runTest {
+        val fakeModel = FakeTableModel()
+        val fakeStorage = FakeStorage()
 
-    override fun exportAsJson(): String =
-        """[{"id":0,"type":"QUADRAT","occupiedBy":["testuser"],"x":0,"y":0}]"""
+        val viewModel = MensaViewModelImpl(fakeModel, fakeStorage, fakeSync)
+        viewModel.sendCurrentState()
 
-    override fun importFromJson(json: String): List<Table> =
-        listOf(Table(0, com.mensasync.model.TableType.QUADRAT, 0, 0, mutableListOf("testuser")))
-}
+        assertTrue(fakeSync.called)
+    }
 
-class FakeSync : SyncService {
-    override fun startDiscovery() {}
-    override fun stop() {}
-    override fun sendData(json: String) {}
-    override fun receiveData(json: String) {}
-    override fun mergeRemoteData(json: String) {}
+    @Test
+    fun `setSyncService replaces current SyncService`() {
+        val newSync = FakeSyncService()
+        viewModel.setSyncService(newSync)
+        viewModel.startSync()
+        assertTrue(newSync.started)
+    }
+
 }

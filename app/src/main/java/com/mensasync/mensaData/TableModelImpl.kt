@@ -1,22 +1,29 @@
-package com.mensasync.model
+package com.mensasync.mensaData
 
 class TableModelImpl : TableModel {
 
-    private val tische = generateMensaTables().toMutableList()
+    private val tables = generateMensaTables().toMutableList()
 
     override fun selectTable(id: Int, name: String) {
-        // Zuvor entfernen, falls schon an einem anderen Tisch
-        tische.forEach { it.occupiedBy.remove(name) }
-
-        tische.firstOrNull { it.id == id }?.occupiedBy?.add(name)
+        val table = tables.firstOrNull { it.id == id }
+            ?: throw NoSuchElementException("Kein Tisch mit ID $id gefunden.")
+        tables.forEach { it.occupiedBy.remove(name) }
+        tables.firstOrNull { it.id == id }?.occupiedBy?.add(name)
     }
 
     override fun releaseTable(id: Int, name: String) {
-        tische.firstOrNull { it.id == id }?.occupiedBy?.remove(name)
+        val table = tables.firstOrNull { it.id == id }
+            ?: throw NoSuchElementException("Kein Tisch mit ID $id gefunden.")
+        tables.firstOrNull { it.id == id }?.occupiedBy?.remove(name)
     }
 
-    override fun getCurrentState(): List<Table> = tische.map {
+    override fun getCurrentState(): List<Table> = tables.map {
         it.copy(occupiedBy = it.occupiedBy.toMutableList())
+    }
+
+    override fun setState(tables: List<Table>) {
+        this.tables.clear()
+        this.tables.addAll(tables.map { it.copy() })
     }
 }
 

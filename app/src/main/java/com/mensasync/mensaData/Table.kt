@@ -1,4 +1,4 @@
-package com.mensasync.model
+package com.mensasync.mensaData
 
 import kotlinx.serialization.Serializable
 

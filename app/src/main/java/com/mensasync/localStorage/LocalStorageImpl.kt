@@ -1,7 +1,7 @@
-package com.mensasync.storage
+package com.mensasync.localStorage
 
 import android.content.Context
-import com.mensasync.model.Table
+import com.mensasync.mensaData.Table
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import androidx.core.content.edit
