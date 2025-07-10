@@ -19,4 +19,5 @@ interface MensaViewModel {
     fun importFromJson(json: String)
 
     fun startSync()
+    fun sendCurrentState()
 }

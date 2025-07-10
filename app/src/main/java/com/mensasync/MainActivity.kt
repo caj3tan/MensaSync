@@ -14,7 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mensasync.model.TableModelImpl
 import com.mensasync.storage.LocalStorageImpl
-import com.mensasync.sync.BluetoothHelper
+import com.mensasync.sync.BluetoothSyncService
 import com.mensasync.sync.SyncServiceImpl
 import com.mensasync.viewmodel.MensaViewModel
 import com.mensasync.viewmodel.MensaViewModelImpl
@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
             println("Empfangenes JSON: $json")
         }
         val viewModel: MensaViewModel = MensaViewModelImpl(tableModel, storage, sync)
-        val syncService = BluetoothHelper(this) { json ->
+        val syncService = BluetoothSyncService(this) { json ->
             viewModel.importFromJson(json)
         }
 

@@ -63,4 +63,9 @@ class MensaViewModelImpl(
         _tables.value = updated
         storage.save(updated)
     }
+
+    override fun sendCurrentState() {
+        val json = exportAsJson()
+        syncService.sendData(json)
+    }
 }

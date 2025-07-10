@@ -32,6 +32,20 @@ fun MensaScreen(navController: NavHostController, viewModel: MensaViewModel) {
             onTableClick = { tisch ->
             ausgewählterTisch = tisch
         })
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(onClick = { viewModel.startSync() }) {
+                Text("Sync starten")
+            }
+
+            Button(onClick = { viewModel.sendCurrentState() }) {
+                Text("Status senden")
+            }
+        }
 
         ausgewählterTisch?.let { tisch ->
             AlertDialog(
